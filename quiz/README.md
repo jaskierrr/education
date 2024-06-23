@@ -2,7 +2,7 @@
 go build . && ./quiz --help
 
 
-###Exercise details
+### Exercise details
 
 This exercise is broken into two parts to help simplify the process of explaining it as well as to make it easier to solve. The second part is harder than the first, so if you get stuck feel free to move on to another problem then come back to part 2 later.
 
