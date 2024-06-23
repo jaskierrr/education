@@ -12,11 +12,10 @@ import (
 	"time"
 )
 
-
 func readCsvFile(filepath string) [][]string {
 	file, err := os.Open(filepath)
 	if err != nil {
-		log.Fatalf("Unable open file: " + filepath + "\n %v", err)
+		log.Fatalf("Unable open file: "+filepath+"\n %v", err)
 	}
 	defer file.Close()
 
@@ -27,7 +26,6 @@ func readCsvFile(filepath string) [][]string {
 	}
 	return records
 }
-
 
 func main() {
 	csvPath := flag.String("csv", "problems.csv", "choose file with quiz data")
@@ -45,13 +43,13 @@ func main() {
 
 	score := 0
 
-	labelloop:
+labelloop:
 	for i := range records {
 		fmt.Println(records[i][0])
 
 		answerCh := make(chan string)
 
-		go func () {
+		go func() {
 			reader := bufio.NewReader(os.Stdin)
 			answer, err := reader.ReadString('\n')
 			if err != nil {
@@ -61,13 +59,13 @@ func main() {
 		}()
 
 		select {
-			case <- timer.C:
-				fmt.Printf("You answered %d questions out of %d correctly\n", score, len(records))
-				break labelloop
-			case answer := <- answerCh:
-				if answer == records[i][1] {
-					score++
-				}
+		case <-timer.C:
+			fmt.Printf("You answered %d questions out of %d correctly\n", score, len(records))
+			break labelloop
+		case answer := <-answerCh:
+			if answer == records[i][1] {
+				score++
+			}
 		}
 	}
 }
