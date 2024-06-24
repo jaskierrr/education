@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"urlShortener/handler"
 )
 
@@ -20,22 +21,33 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	yamlPath := flag.String("yaml", "data.yaml", "choose yaml file with data")
+	dataPath := flag.String("data", "data.yaml", "choose yaml file with data")
 	flag.Parse()
 
 	mux := defaultMux()
 
-
-	yamlData, err := os.ReadFile(*yamlPath)
+	Data, err := os.ReadFile(*dataPath)
 	if err != nil {
-		log.Fatalf("Unabale read yaml file: %v\n", err)
+		log.Fatalf("Unabale read file: %v\n", err)
 	}
 
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yamlData), mux)
-	if err != nil {
-		log.Fatalf("Unabale to parse yaml: %v\n", err)
-	}
 
-	fmt.Println("Starting the server on :8080...")
-	http.ListenAndServe("127.0.0.1:8080", yamlHandler)
+	if strings.HasSuffix(*dataPath, "yaml") {
+		
+		yamlHandler, err := urlshort.YAMLHandler([]byte(Data), mux)
+		if err != nil {
+			log.Fatalf("Unabale to parse yaml: %v\n", err)
+		}
+		fmt.Println("Starting the server on :8080...")
+		http.ListenAndServe("127.0.0.1:8080", yamlHandler)
+
+	} else  if strings.HasSuffix(*dataPath, "json") {
+
+		jsonHandler, err := urlshort.JSONHandler([]byte(Data), mux)
+		if err != nil {
+			log.Fatalf("Unabale to parse yaml: %v\n", err)
+		}
+		fmt.Println("Starting the server on :8080...")
+		http.ListenAndServe("127.0.0.1:8080", jsonHandler)
+	}
 }

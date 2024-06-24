@@ -1,6 +1,7 @@
 package urlshort
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -9,8 +10,40 @@ import (
 
 type yamlStruct struct {
 	Path string `yaml:"path"`
-	Url string  `yaml:"url"`
+	URL string  `yaml:"url"`
 }
+
+type jsonStruct struct {
+	Path string `json:"path"`
+	URL string `json:"url"`
+}
+
+type yamlSlice []yamlStruct
+type jsonSlice []jsonStruct
+
+type MapBuilder interface {
+	BuildMap()
+}
+
+func (slice yamlSlice) BuildMap() map[string]string {
+	pathMap := make(map[string]string)
+	for _, v := range slice {
+		pathMap[v.Path] = v.URL
+	}
+	fmt.Println(pathMap)
+	return pathMap
+}
+
+func (slice jsonSlice) BuildMap() map[string]string {
+	pathMap := make(map[string]string)
+	for _, v := range slice {
+		pathMap[v.Path] = v.URL
+	}
+	fmt.Println(pathMap)
+	return pathMap
+}
+
+
 
 
 // MapHandler will return an http.HandlerFunc (which also
@@ -29,6 +62,16 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 			fallback.ServeHTTP(w, r)
 	})
 }
+
+// func buildMap(parsedData []yamlStruct) map[string]string {
+// 	pathMap := make(map[string]string)
+// 	for _, v := range parsedData {
+// 		pathMap[v.Path] = v.URL
+// 	}
+// 	fmt.Println(pathMap)
+// 	return pathMap
+// }
+
 
 // YAMLHandler will parse the provided YAML and then return
 // an http.HandlerFunc (which also implements http.Handler)
@@ -52,23 +95,33 @@ func YAMLHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
 		return nil, err
 	}
 
-	pathMap := buildMap(parsedYaml)
+	pathMap := parsedYaml.BuildMap()
 
 	return MapHandler(pathMap, fallback), nil
 }
 
-func parseYaml(data []byte) ([]yamlStruct, error) {
-	parsedData := []yamlStruct{}
+func parseYaml(data []byte) (yamlSlice, error) {
+	parsedData := yamlSlice{}
 	err := yaml.Unmarshal(data, &parsedData)
 
 	return parsedData, err
 }
 
-func buildMap(parsedYaml []yamlStruct) map[string]string {
-	pathMap := make(map[string]string)
-	for _, v := range parsedYaml {
-		pathMap[v.Path] = v.Url
+
+func JSONHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	parsedJSON, err := parseJSON(data)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println(pathMap)
-	return pathMap
+
+	pathMap := parsedJSON.BuildMap()
+
+	return MapHandler(pathMap, fallback), nil
+}
+
+func parseJSON(data []byte) (jsonSlice, error) {
+	parsedData := jsonSlice{}
+	err := json.Unmarshal(data, &parsedData)
+
+	return parsedData, err
 }
