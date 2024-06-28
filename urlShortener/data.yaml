@@ -1,8 +1,8 @@
-- path: /urlshort
+- path: urlshort
   url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
+- path: urlshort-final
   url: https://github.com/gophercises/urlshort/tree/solution
-- path: /google
+- path: google
   url: https://google.com
-- path: /sg
+- path: sg
   url: https://stopgame.ru

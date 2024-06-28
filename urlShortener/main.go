@@ -3,51 +3,38 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"strings"
-	"urlShortener/handler"
+
+	handlers "main/handlers"
+	"github.com/gorilla/mux"
 )
 
-func defaultMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", hello)
-	return mux
+func hello(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello!")
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "hello")
-}
 
 func main() {
-	dataPath := flag.String("data", "data.yaml", "choose yaml file with data")
+	dataPath := flag.String("data", "data.yaml", "choose YAML or JSON file with data")
 	flag.Parse()
 
-	mux := defaultMux()
+	fmt.Printf("Data from: %q\n",*dataPath)
 
-	Data, err := os.ReadFile(*dataPath)
-	if err != nil {
-		log.Fatalf("Unabale read file: %v\n", err)
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", hello).Methods("GET")
+
+	r.HandleFunc("/set/{key}/{value}", handlers.SetURL).Methods("GET")
+	r.HandleFunc("/get/{key}", handlers.GetURL).Methods("GET")
+
+	if strings.HasSuffix(*dataPath, ".yaml") {
+		r.HandleFunc("/yaml/{key}", handlers.YamlHandler(*dataPath)).Methods("GET")
+	}
+	if strings.HasSuffix(*dataPath, ".json") {
+		r.HandleFunc("/json/{key}", handlers.JsonHandler(*dataPath)).Methods("GET")
 	}
 
-
-	if strings.HasSuffix(*dataPath, "yaml") {
-		
-		yamlHandler, err := urlshort.YAMLHandler([]byte(Data), mux)
-		if err != nil {
-			log.Fatalf("Unabale to parse yaml: %v\n", err)
-		}
-		fmt.Println("Starting the server on :8080...")
-		http.ListenAndServe("127.0.0.1:8080", yamlHandler)
-
-	} else  if strings.HasSuffix(*dataPath, "json") {
-
-		jsonHandler, err := urlshort.JSONHandler([]byte(Data), mux)
-		if err != nil {
-			log.Fatalf("Unabale to parse yaml: %v\n", err)
-		}
-		fmt.Println("Starting the server on :8080...")
-		http.ListenAndServe("127.0.0.1:8080", jsonHandler)
-	}
+	fmt.Println("Starting the server on :8080...")
+	http.ListenAndServe(":8080", r)
 }

@@ -1,6 +1,12 @@
 Получить список поддерживаемых флагов
 go build . && ./urlShortener -h
 
+Реализована поддержка Redis, теперь можно самому задать ссылку для сокращения
+Для этого понадобиться:
+  Запущенный redis-server на 6379 порту (sudo service redis-server start)
+  По пути /set/"короткая ссылка(google)"/"длинная ссылка(google.com)" задать ссылку
+  Перейти по пути /get/"короткая ссылка"
+
 ### Exercise details
 The goal of this exercise is to create an http.Handler that will look at the path of any incoming web request and determine if it should redirect the user to a new page, much like URL shortener would.
 
